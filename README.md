@@ -4,7 +4,7 @@ Agente conversacional que responde en lenguaje natural sobre boletas y facturas 
 
 Autor: [sebpost2](https://github.com/sebpost2)
 
-**[Demo en vivo](https://invoice-chat-sebpost2s-projects.vercel.app)** · Sin registro · 13 boletas demo precargadas
+**[Demo en vivo](https://invoice-chat-zeta.vercel.app)** · Sin registro · 13 boletas demo precargadas
 
 ---
 
