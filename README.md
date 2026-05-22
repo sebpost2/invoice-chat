@@ -1,45 +1,49 @@
+**[English](README.md) · [Español](README.es.md)**
+
+---
+
 # Invoice Chat
 
-Agente conversacional que responde en lenguaje natural sobre boletas y facturas peruanas. Demuestra **tool use real**: el LLM decide qué herramienta SQL llamar (`list_receipts`, `query_aggregates`, `get_receipt_detail`), las ejecuta sobre Neon Postgres y responde con la data verificable. Reusa la misma DB que [Invoice Extractor](https://github.com/sebpost2/invoice-extractor) — primero se extraen las boletas, después se analizan.
+Conversational agent that answers in natural language about Peruvian receipts and invoices. Showcases **real tool use**: the LLM decides which SQL tool to call (`list_receipts`, `query_aggregates`, `get_receipt_detail`), executes it against Neon Postgres, and responds with verifiable data. Reuses the same database as [Invoice Extractor](https://github.com/sebpost2/invoice-extractor) — extract first, then analyze.
 
-Autor: [sebpost2](https://github.com/sebpost2)
+Author: [sebpost2](https://github.com/sebpost2)
 
-**[Demo en vivo](https://invoice-chat-zeta.vercel.app)** · Sin registro · 13 boletas demo precargadas
+**[Live demo](https://invoice-chat-zeta.vercel.app)** · No sign-up · 13 demo receipts preloaded
 
 ---
 
 ## Highlights
 
-- **Agente con multi-step reasoning**: el modelo encadena hasta 5 pasos. Para "el detalle de la boleta más cara" hace `list_receipts({orderBy: "total_desc"})` → toma el id del primer resultado → `get_receipt_detail({id})` → redacta la respuesta.
-- **Tools tipadas con Zod**: cada herramienta declara su schema (`z.enum`, `z.string`), el AI SDK valida los inputs antes de ejecutar, y TypeScript infiere los tipos en el lado del servidor.
-- **Streaming token-por-token** de la respuesta final con Vercel AI SDK v6 (`streamText` + `useChat`).
-- **Transparencia del agente**: cada tool call es un componente `<details>` colapsable que muestra `input` y `output` JSON exactos. El visitante ve qué consultó el modelo, no solo qué respondió.
-- **Citas data-driven**: si la respuesta surge de un `get_receipt_detail` específico, se muestra el id de la boleta consultada. Si surge de un listado/agregado, se muestra el alcance ("Basado en N boletas"). Nada de fabricar referencias.
-- **Markdown real** en las respuestas (bullets, tablas, énfasis) renderizado con `react-markdown` + GFM.
-- **Rate limit** por IP (token bucket en memoria, 10 mensajes/hora) — protege la cuota gratis de Groq de bots casuales y muestra un mensaje amigable al alcanzar el límite.
-- **Demo data sintética**: 10 boletas sembradas vía `npm run seed` (Tottus, Pardos, Sodimac, Inkafarma, etc.) más las 3 reales del extractor — 13 boletas totales para preguntas con sustancia.
+- **Multi-step reasoning agent**: the model can chain up to 5 steps. For "details of the most expensive receipt" it calls `list_receipts({orderBy: "total_desc"})` → grabs the first id → `get_receipt_detail({id})` → writes the answer.
+- **Zod-typed tools**: each tool declares its schema (`z.enum`, `z.string`), the AI SDK validates inputs before execution, and TypeScript infers the types on the server.
+- **Token-by-token streaming** of the final answer via Vercel AI SDK v6 (`streamText` + `useChat`).
+- **Agent transparency**: every tool call is a collapsible `<details>` component showing the exact `input` and `output` JSON. Visitors see what the model queried, not just what it said.
+- **Data-driven citations**: if the answer comes from a specific `get_receipt_detail`, the receipt id is shown. If it comes from a list/aggregate, the scope is shown ("Based on N receipts"). No fabricated references.
+- **Real Markdown** in answers (bullets, tables, emphasis) rendered with `react-markdown` + GFM.
+- **Per-IP rate limit** (in-memory token bucket, 10 messages/hour) — protects the free Groq quota from casual bots and shows a friendly message on limit hit.
+- **Synthetic demo data**: 10 receipts seeded via `npm run seed` (Tottus, Pardos, Sodimac, Inkafarma, etc.) plus the 3 real ones from the extractor — 13 receipts total for substantial questions.
 
 ## Stack
 
-| Capa | Tecnología |
+| Layer | Technology |
 |---|---|
 | Framework | Next.js 16 (App Router, Turbopack) |
-| Lenguaje | TypeScript |
-| Estilos | Tailwind CSS v4 (dark-first) |
+| Language | TypeScript |
+| Styling | Tailwind CSS v4 (dark-first) |
 | LLM SDK | Vercel AI SDK v6 (`ai`, `@ai-sdk/groq`, `@ai-sdk/react`) |
-| Modelo | OpenAI gpt-oss-120b via Groq |
-| Base de datos | PostgreSQL (Neon, serverless) — compartida con el extractor |
-| ORM | Prisma 7 con adapter `@prisma/adapter-pg` |
-| Validación | Zod 4 |
+| Model | OpenAI gpt-oss-120b via Groq |
+| Database | PostgreSQL (Neon, serverless) — shared with the extractor |
+| ORM | Prisma 7 with `@prisma/adapter-pg` |
+| Validation | Zod 4 |
 | Markdown | `react-markdown` + `remark-gfm` |
-| Rate limit | Token bucket in-memory |
+| Rate limit | In-memory token bucket |
 | Deploy | Vercel |
 
-## Cómo funciona
+## How it works
 
 ```
 ┌──────────┐  sendMessage   ┌────────────────┐    streamText    ┌──────┐
-│  Cliente │ ─────────────> │  /api/chat     │ ───────────────> │ Groq │
+│  Client  │ ─────────────> │  /api/chat     │ ───────────────> │ Groq │
 │ useChat  │                │ (route handler)│  + tools (Zod)   │ LLM  │
 └────┬─────┘                └────────┬───────┘                  └───┬──┘
      │                               │                              │
@@ -49,105 +53,105 @@ Autor: [sebpost2](https://github.com/sebpost2)
      │ • tool-input-streaming        │  │ DB     │                  │
      │ • tool-output-available       │  └────────┘  tool result ────┤
      │ • text-end                    │                              │
-     │                               │  ... hasta stepCountIs(5)    │
+     │                               │  ... until stepCountIs(5)    │
 ```
 
-1. El cliente envía mensaje con `useChat({ transport: DefaultChatTransport })`.
-2. El route handler chequea rate limit por IP. Si pasa, llama `streamText` con las 3 tools y el modelo Groq.
-3. El modelo decide qué tool llamar y emite tool-call parts. El AI SDK ejecuta el `execute` correspondiente (Prisma query) y feedbackea el resultado al modelo.
-4. El modelo puede hacer más tool calls en pasos siguientes (`stopWhen: stepCountIs(5)`) o redactar la respuesta final.
-5. Toda la conversación llega al cliente como un stream de partes tipadas que se renderizan en orden.
+1. The client sends a message via `useChat({ transport: DefaultChatTransport })`.
+2. The route handler checks per-IP rate limit. If allowed, it calls `streamText` with the 3 tools and the Groq model.
+3. The model picks a tool and emits tool-call parts. The AI SDK runs the matching `execute` (Prisma query) and feeds the result back to the model.
+4. The model can make further tool calls in subsequent steps (`stopWhen: stepCountIs(5)`) or write the final answer.
+5. The entire conversation reaches the client as a stream of typed parts rendered in order.
 
-## Las tres herramientas
+## The three tools
 
-| Tool | Input | Output | Cuándo el modelo la elige |
+| Tool | Input | Output | When the model picks it |
 |---|---|---|---|
-| `list_receipts` | `orderBy: "date_desc" \| "date_asc" \| "total_desc" \| "total_asc"` | Array de boletas con campos resumidos | "Muéstrame mis boletas", "¿cuál fue la más cara?" |
-| `query_aggregates` | `metric: "total_spent" \| "total_igv" \| "total_subtotal" \| "count" \| "all"` | Agregados por moneda | "¿Cuánto gasté?", "¿Cuántas boletas tengo?", "¿Cuánto IGV pagué?" |
-| `get_receipt_detail` | `id: string` | Boleta completa con ítems | "Dame el detalle de [id]", último paso después de identificar una boleta por listado |
+| `list_receipts` | `orderBy: "date_desc" \| "date_asc" \| "total_desc" \| "total_asc"` | Array of receipts with summary fields | "Show me my receipts", "which was the most expensive?" |
+| `query_aggregates` | `metric: "total_spent" \| "total_igv" \| "total_subtotal" \| "count" \| "all"` | Per-currency aggregates | "How much did I spend?", "How many receipts?", "How much VAT?" |
+| `get_receipt_detail` | `id: string` | Full receipt with items | "Give me the details of [id]", final step after identifying a receipt via a list |
 
-## Decisiones de diseño
+## Design decisions
 
-- **DB compartida con el extractor** (`sessionId = "__demo__"`): contar una historia ("primero extraigo, después analizo") es más fuerte para portafolio que dos silos desconectados.
-- **Sin embeddings ni vector DB**: los datos son SQL estructurado. Tool use con SQL es más preciso, más rápido y más explicable que RAG sobre la misma data.
-- **Sin persistencia de threads**: cada refresh empieza una conversación nueva. Stateless por mensaje. El demo es para mostrar el agente, no construir un ChatGPT-clone.
-- **Modelo: `openai/gpt-oss-120b`** sobre `llama-3.3-70b`: el Llama tiene un bug reproducible donde envía `input: null` a tools sin parámetros y Groq rechaza con `Failed to call a function`. El gpt-oss-120b construye tool calls válidos consistentemente.
-- **Parámetros requeridos en todas las tools** (no `z.object({})` vacío): obliga al modelo a tomar una decisión real (orden, métrica), no a generar un objeto vacío. Como bonus enriquece la conversación.
-- **Citas solo de `get_receipt_detail`**: cuando el modelo llama `list_receipts` recibe N filas; tratar a las N como "fuentes" sería ruido. Solo los lookups específicos cuentan como referencias.
+- **DB shared with the extractor** (`sessionId = "__demo__"`): telling a story ("extract first, then analyze") is a stronger portfolio signal than two disconnected silos.
+- **No embeddings, no vector DB**: the data is structured SQL. Tool use with SQL is more accurate, faster, and more explainable than RAG over the same data.
+- **No thread persistence**: each refresh starts a new conversation. Stateless per message. The demo is meant to showcase the agent, not build a ChatGPT clone.
+- **Model: `openai/gpt-oss-120b`** over `llama-3.3-70b`: Llama has a reproducible bug where it sends `input: null` to tools without parameters and Groq rejects with `Failed to call a function`. gpt-oss-120b builds valid tool calls consistently.
+- **Required parameters on every tool** (no empty `z.object({})`): forces the model to make a real decision (sort, metric), not produce an empty object. As a bonus it enriches the conversation.
+- **Citations only from `get_receipt_detail`**: when the model calls `list_receipts` it gets N rows; treating all N as "sources" would be noise. Only specific lookups count as references.
 
-## Correr localmente
+## Running locally
 
-### Requisitos
+### Requirements
 
 - Node.js 20.9+
-- DB Postgres con el schema del extractor aplicado ([Neon](https://neon.tech) free tier)
-- API key de [Groq](https://console.groq.com) free tier
+- Postgres DB with the extractor schema applied ([Neon](https://neon.tech) free tier)
+- Free [Groq](https://console.groq.com) API key
 
 ### Setup
 
 ```bash
-git clone https://github.com/<tu-usuario>/invoice-chat
+git clone https://github.com/<your-user>/invoice-chat
 cd invoice-chat
 npm install
 ```
 
-Crea `.env`:
+Create `.env`:
 
 ```env
 DATABASE_URL="postgresql://user:password@host/db?sslmode=verify-full"
 GROQ_API_KEY="gsk_..."
 ```
 
-Asegúrate de que la DB tenga el schema del extractor (`Receipt` table). Si no la tienes:
+Make sure the DB has the extractor schema (`Receipt` table). If not:
 
 ```bash
 npx prisma db push
 ```
 
-Siembra las 10 boletas demo sintéticas:
+Seed the 10 synthetic demo receipts:
 
 ```bash
 npm run seed
 ```
 
-Levanta el dev server:
+Start the dev server:
 
 ```bash
 npm run dev
 ```
 
-Abre [http://localhost:3000](http://localhost:3000).
+Open [http://localhost:3000](http://localhost:3000).
 
-## Variables de entorno
+## Environment variables
 
-| Variable | Descripción |
+| Variable | Description |
 |---|---|
-| `DATABASE_URL` | Connection string PostgreSQL — Neon (la misma del extractor) |
-| `GROQ_API_KEY` | API key de Groq para gpt-oss-120b |
+| `DATABASE_URL` | Postgres connection string — Neon (same one as the extractor) |
+| `GROQ_API_KEY` | Groq API key for gpt-oss-120b |
 
-## Estructura del proyecto
+## Project structure
 
 ```
 ├── src/
 │   ├── app/
 │   │   ├── api/chat/route.ts   # Route handler: streamText + 3 tools + rate limit
-│   │   ├── layout.tsx          # Dark mode forzado, metadata
-│   │   └── page.tsx            # UI: useChat + tool details + citas + markdown
+│   │   ├── layout.tsx          # Forced dark mode, metadata
+│   │   └── page.tsx            # UI: useChat + tool details + citations + markdown
 │   └── lib/
-│       ├── prisma.ts           # Cliente Prisma con adapter Neon
-│       └── ratelimit.ts        # Token bucket in-memory por IP
+│       ├── prisma.ts           # Prisma client with Neon adapter
+│       └── ratelimit.ts        # Per-IP in-memory token bucket
 ├── prisma/
-│   └── schema.prisma           # Modelo Receipt (compartido con el extractor)
+│   └── schema.prisma           # Receipt model (shared with the extractor)
 └── scripts/
-    └── seed-chat-demo.ts       # 10 boletas sintéticas (Tottus, Pardos, Sodimac…)
+    └── seed-chat-demo.ts       # 10 synthetic receipts (Tottus, Pardos, Sodimac…)
 ```
 
-## Limitaciones conocidas
+## Known limitations
 
-- **Rate limit in-memory**: cada serverless function de Vercel tiene su propio contador. Si Vercel escala a varias instancias bajo tráfico alto, el límite efectivo es por-instancia-por-IP. Suficiente para portafolio personal; migrar a Upstash Redis si se vuelve relevante.
-- **Conversación no persiste**: refresh = nuevo chat. Mostrar el agente importa más que el histórico.
-- **El modelo puede no elegir la tool ideal**: para preguntas ambiguas ocasionalmente llama una tool subóptima. El system prompt mitiga, no elimina.
+- **In-memory rate limit**: each Vercel serverless function has its own counter. If Vercel scales to multiple instances under heavy traffic, the effective limit is per-instance-per-IP. Fine for a personal portfolio; migrate to Upstash Redis if it ever matters.
+- **Conversation does not persist**: refresh = new chat. Showcasing the agent matters more than history.
+- **The model may not pick the ideal tool**: for ambiguous prompts it occasionally calls a sub-optimal tool. The system prompt mitigates, doesn't eliminate.
 
 ---
 
-Construido por [sebpost2](https://github.com/sebpost2) para demostrar agentes IA con tool use real, multi-step reasoning, y stack moderno (Vercel AI SDK + Next 16).
+Built by [sebpost2](https://github.com/sebpost2) to showcase AI agents with real tool use, multi-step reasoning, and a modern stack (Vercel AI SDK + Next 16).
