@@ -4,6 +4,8 @@
 
 # Invoice Chat
 
+[![ci](https://github.com/sebpost2/invoice-chat/actions/workflows/ci.yml/badge.svg)](https://github.com/sebpost2/invoice-chat/actions/workflows/ci.yml)
+
 Agente conversacional que responde en lenguaje natural sobre boletas y facturas peruanas. Demuestra **tool use real**: el LLM decide qué herramienta SQL llamar (`list_receipts`, `query_aggregates`, `get_receipt_detail`), las ejecuta sobre Neon Postgres y responde con la data verificable. Reusa la misma DB que [Invoice Extractor](https://github.com/sebpost2/invoice-extractor) — primero se extraen las boletas, después se analizan.
 
 Autor: [sebpost2](https://github.com/sebpost2)
