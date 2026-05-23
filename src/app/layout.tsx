@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { getLang, getDict } from "@/lib/i18n-server";
+import { LanguageProvider } from "@/components/language-provider";
+import { LanguageToggle } from "@/components/language-toggle";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -12,23 +15,31 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "Invoice Chat — Pregunta sobre tus boletas",
-  description:
-    "Agente conversacional que responde en lenguaje natural sobre boletas peruanas, usando herramientas SQL sobre Neon Postgres y Groq Llama 3.3 70B.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getDict();
+  return {
+    title: t.meta.title,
+    description: t.meta.description,
+  };
+}
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const lang = await getLang();
   return (
     <html
-      lang="es"
+      lang={lang}
       className={`${geistSans.variable} ${geistMono.variable} dark h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <LanguageProvider lang={lang}>
+          <LanguageToggle />
+          {children}
+        </LanguageProvider>
+      </body>
     </html>
   );
 }
