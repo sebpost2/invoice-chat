@@ -1,0 +1,50 @@
+# Multi-step reasoning: prompts that require chaining tools (list → detail).
+# Single-turn evaluation here — we only check the FIRST tool the model picks,
+# which should be the one that produces the id list. The follow-up step is
+# verified at runtime by the live chat (stepCountIs(5)) and by manual smoke.
+
+- description: "ES: 'detalle de la más cara' → first call list_receipts(total_desc)"
+  vars:
+    message: "Dame el detalle de la boleta más cara"
+    lang: es
+  assert:
+    - type: contains
+      value: "TOOL:list_receipts"
+    - type: contains-json
+      value: { orderBy: "total_desc" }
+
+- description: "EN: 'details of most expensive' → first call list_receipts(total_desc)"
+  vars:
+    message: "Give me the details of the most expensive receipt"
+    lang: en
+  assert:
+    - type: contains
+      value: "TOOL:list_receipts"
+    - type: contains-json
+      value: { orderBy: "total_desc" }
+
+- description: "ES: 'detalle' sin precisar → llama list_receipts primero"
+  vars:
+    message: "Dame el detalle"
+    lang: es
+  assert:
+    - type: contains
+      value: "TOOL:list_receipts"
+
+- description: "EN: ambiguous 'the details' → list_receipts first"
+  vars:
+    message: "Give me the details"
+    lang: en
+  assert:
+    - type: contains
+      value: "TOOL:list_receipts"
+
+- description: "ES: 'detalle de la más reciente' → list_receipts(date_desc)"
+  vars:
+    message: "Dame el detalle de la boleta más reciente"
+    lang: es
+  assert:
+    - type: contains
+      value: "TOOL:list_receipts"
+    - type: contains-json
+      value: { orderBy: "date_desc" }

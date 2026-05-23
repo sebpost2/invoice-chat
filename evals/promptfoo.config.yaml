@@ -1,0 +1,35 @@
+# Promptfoo config for invoice-chat tool-selection evals.
+#
+# What this checks: given a user message, does Groq (gpt-oss-120b) pick the
+# right tool with the right arguments — and does it stay silent (no tool)
+# for greetings and out-of-scope questions?
+#
+# What this does NOT check: tool *execution*. Implementations live in
+# src/lib/chat-config.ts and are deterministic Prisma queries; they are
+# verified by manual + Vercel preview testing, not by LLM evals.
+#
+# Run with:
+#   GROQ_API_KEY=... npm run eval
+
+description: invoice-chat tool selection evals
+
+prompts:
+  - "{{message}}"
+
+providers:
+  - id: file://groq-tool-provider.mjs
+    label: groq-gpt-oss-120b
+
+defaultTest:
+  options:
+    transform: output
+  assert:
+    # Every successful run must produce a TOOL: or TEXT: prefixed string
+    # — guards against the provider returning a malformed shape.
+    - type: regex
+      value: '^(TOOL:|TEXT:)'
+
+tests:
+  - file://tests/tool-selection.yaml
+  - file://tests/multi-step.yaml
+  - file://tests/refusal.yaml

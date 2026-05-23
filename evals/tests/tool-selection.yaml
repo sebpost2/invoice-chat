@@ -1,0 +1,118 @@
+# Single-step tool selection: each user message should map to exactly one tool
+# with specific arguments. The model should NOT chit-chat instead of querying.
+
+- description: "ES: '¿cuánto he gastado?' → query_aggregates(total_spent)"
+  vars:
+    message: "¿Cuánto he gastado en total?"
+    lang: es
+  assert:
+    - type: contains
+      value: "TOOL:query_aggregates"
+    - type: contains-json
+      value: { metric: "total_spent" }
+
+- description: "EN: 'how much have I spent?' → query_aggregates(total_spent)"
+  vars:
+    message: "How much have I spent in total?"
+    lang: en
+  assert:
+    - type: contains
+      value: "TOOL:query_aggregates"
+    - type: contains-json
+      value: { metric: "total_spent" }
+
+- description: "ES: '¿cuánto IGV?' → query_aggregates(total_igv)"
+  vars:
+    message: "¿Cuánto IGV he pagado?"
+    lang: es
+  assert:
+    - type: contains
+      value: "TOOL:query_aggregates"
+    - type: contains-json
+      value: { metric: "total_igv" }
+
+- description: "EN: 'how much VAT?' → query_aggregates(total_igv)"
+  vars:
+    message: "How much VAT did I pay total?"
+    lang: en
+  assert:
+    - type: contains
+      value: "TOOL:query_aggregates"
+    - type: contains-json
+      value: { metric: "total_igv" }
+
+- description: "ES: '¿cuántas boletas tengo?' → query_aggregates(count)"
+  vars:
+    message: "¿Cuántas boletas tengo?"
+    lang: es
+  assert:
+    - type: contains
+      value: "TOOL:query_aggregates"
+    - type: contains-json
+      value: { metric: "count" }
+
+- description: "EN: 'how many receipts?' → query_aggregates(count)"
+  vars:
+    message: "How many receipts do I have?"
+    lang: en
+  assert:
+    - type: contains
+      value: "TOOL:query_aggregates"
+    - type: contains-json
+      value: { metric: "count" }
+
+- description: "ES: 'muéstrame mis boletas' → list_receipts (any order)"
+  vars:
+    message: "Muéstrame mis boletas"
+    lang: es
+  assert:
+    - type: contains
+      value: "TOOL:list_receipts"
+
+- description: "EN: 'show me my receipts' → list_receipts (any order)"
+  vars:
+    message: "Show me my receipts"
+    lang: en
+  assert:
+    - type: contains
+      value: "TOOL:list_receipts"
+
+- description: "ES: 'las más recientes' → list_receipts(date_desc)"
+  vars:
+    message: "Lista mis boletas, primero las más recientes"
+    lang: es
+  assert:
+    - type: contains
+      value: "TOOL:list_receipts"
+    - type: contains-json
+      value: { orderBy: "date_desc" }
+
+- description: "EN: 'oldest first' → list_receipts(date_asc)"
+  vars:
+    message: "List my receipts, oldest first"
+    lang: en
+  assert:
+    - type: contains
+      value: "TOOL:list_receipts"
+    - type: contains-json
+      value: { orderBy: "date_asc" }
+
+- description: "ES: '¿cuál fue la más cara?' → list_receipts(total_desc)"
+  vars:
+    message: "¿Cuál fue la boleta más cara?"
+    lang: es
+  assert:
+    - type: contains
+      value: "TOOL:list_receipts"
+    - type: contains-json
+      value: { orderBy: "total_desc" }
+
+- description: "EN: 'cheapest one?' → list_receipts(total_asc)"
+  vars:
+    message: "Which receipt was the cheapest?"
+    lang: en
+  assert:
+    - type: contains
+      value: "TOOL:list_receipts"
+    - type: contains-json
+      value: { orderBy: "total_asc" }

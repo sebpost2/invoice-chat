@@ -22,6 +22,7 @@ Autor: [sebpost2](https://github.com/sebpost2)
 - **Markdown real** en las respuestas (bullets, tablas, énfasis) renderizado con `react-markdown` + GFM.
 - **Rate limit** por IP (token bucket en memoria, 10 mensajes/hora) — protege la cuota gratis de Groq de bots casuales y muestra un mensaje amigable al alcanzar el límite.
 - **Demo data sintética**: 10 boletas sembradas vía `npm run seed` (Tottus, Pardos, Sodimac, Inkafarma, etc.) más las 3 reales del extractor — 13 boletas totales para preguntas con sustancia.
+- **Evals de tool selection con [Promptfoo](https://promptfoo.dev)**: 22 casos bajo [`evals/`](./evals) que blindan el comportamiento del agente — ruteo single-step (ES + EN), chains `list → detail`, y rechazo sin tool para saludos / off-topic. Corre con `npm run eval`. Un guard pre-eval verifica que la copia duplicada del prompt no haya divergido de `src/lib/chat-prompts.ts`.
 
 ## Stack
 
@@ -37,6 +38,7 @@ Autor: [sebpost2](https://github.com/sebpost2)
 | Validación | Zod 4 |
 | Markdown | `react-markdown` + `remark-gfm` |
 | Rate limit | Token bucket in-memory |
+| Evals LLM | Promptfoo (OSS) — 22 casos de tool selection bajo `evals/` |
 | Deploy | Vercel |
 
 ## Cómo funciona
@@ -78,6 +80,19 @@ Autor: [sebpost2](https://github.com/sebpost2)
 - **Modelo: `openai/gpt-oss-120b`** sobre `llama-3.3-70b`: el Llama tiene un bug reproducible donde envía `input: null` a tools sin parámetros y Groq rechaza con `Failed to call a function`. El gpt-oss-120b construye tool calls válidos consistentemente.
 - **Parámetros requeridos en todas las tools** (no `z.object({})` vacío): obliga al modelo a tomar una decisión real (orden, métrica), no a generar un objeto vacío. Como bonus enriquece la conversación.
 - **Citas solo de `get_receipt_detail`**: cuando el modelo llama `list_receipts` recibe N filas; tratar a las N como "fuentes" sería ruido. Solo los lookups específicos cuentan como referencias.
+
+## Evals de tool selection
+
+Cada test alimenta al modelo con un mensaje del usuario y asserta sobre un string determinístico que devuelve un provider Promptfoo custom:
+
+- `TOOL:<name> ARGS:<json>` — el modelo llamó esa tool con esos argumentos
+- `TEXT:<content>` — el modelo respondió directo
+
+```bash
+GROQ_API_KEY=gsk_... npm run eval
+```
+
+Eso corre (1) un guard de sync que falla si los system prompts duplicados en el provider de evals divergen de `src/lib/chat-prompts.ts`, luego (2) la suite Promptfoo. Los 22 casos cubren ruteo single-step en ES + EN, chains `list → detail`, y rechazo sin tool para saludos / off-topic. Un pass completo usa ~25 calls a Groq, bien dentro del free tier. Ver [`evals/README.md`](./evals/README.md) para el rationale, el layout de archivos, y qué cosas intencionalmente la suite *no* verifica.
 
 ## Correr localmente
 
@@ -134,12 +149,19 @@ Abre [http://localhost:3000](http://localhost:3000).
 ```
 ├── src/
 │   ├── app/
-│   │   ├── api/chat/route.ts   # Route handler: streamText + 3 tools + rate limit
+│   │   ├── api/chat/route.ts   # Route handler: streamText + rate limit (solo orquestación)
 │   │   ├── layout.tsx          # Dark mode forzado, metadata
 │   │   └── page.tsx            # UI: useChat + tool details + citas + markdown
 │   └── lib/
+│       ├── chat-config.ts      # chatTools (schemas Zod + execute Prisma)
+│       ├── chat-prompts.ts     # SYSTEM_PROMPT_EN/ES (fuente canónica para live + evals)
 │       ├── prisma.ts           # Cliente Prisma con adapter Neon
 │       └── ratelimit.ts        # Token bucket in-memory por IP
+├── evals/
+│   ├── promptfoo.config.yaml   # Provider + referencias a archivos de tests
+│   ├── groq-tool-provider.mjs  # Provider custom → output determinístico TOOL:/TEXT:
+│   ├── verify-prompts-sync.mjs # Guard pre-eval: falla si la copia del prompt divergió
+│   └── tests/                  # 22 casos: tool-selection, multi-step, refusal
 ├── prisma/
 │   └── schema.prisma           # Modelo Receipt (compartido con el extractor)
 └── scripts/

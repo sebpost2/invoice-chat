@@ -1,0 +1,42 @@
+# No-tool cases: greetings, meta questions, and out-of-scope queries should
+# get a text answer, not a wasted tool call.
+
+- description: "ES: saludo → sin tool, responde con texto"
+  vars:
+    message: "Hola"
+    lang: es
+  assert:
+    - type: starts-with
+      value: "TEXT:"
+
+- description: "EN: greeting → no tool, text reply"
+  vars:
+    message: "Hi"
+    lang: en
+  assert:
+    - type: starts-with
+      value: "TEXT:"
+
+- description: "ES: agradecimiento → sin tool"
+  vars:
+    message: "Gracias!"
+    lang: es
+  assert:
+    - type: starts-with
+      value: "TEXT:"
+
+- description: "EN: 'what can you do?' → text, no tool"
+  vars:
+    message: "What can you do?"
+    lang: en
+  assert:
+    - type: starts-with
+      value: "TEXT:"
+
+- description: "ES: off-topic ('clima') → texto, no llama tools"
+  vars:
+    message: "¿Qué clima hace hoy en Arequipa?"
+    lang: es
+  assert:
+    - type: starts-with
+      value: "TEXT:"
