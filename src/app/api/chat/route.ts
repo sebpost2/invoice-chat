@@ -40,7 +40,14 @@ export async function POST(req: Request) {
     );
   }
 
-  const { messages }: { messages: UIMessage[] } = await req.json();
+  let messages: UIMessage[];
+  try {
+    ({ messages } = await req.json());
+  } catch {
+    const errorMsg =
+      lang === "es" ? "Cuerpo de solicitud inválido." : "Invalid request body.";
+    return Response.json({ error: errorMsg }, { status: 400 });
+  }
 
   const result = streamText({
     model: groq("openai/gpt-oss-120b"),

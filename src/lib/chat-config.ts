@@ -42,7 +42,6 @@ async function listReceiptsImpl({ orderBy }: { orderBy: ListOrderBy }) {
       currency: r.currency,
       total: r.total != null ? Number(r.total) : null,
     }));
-    console.log("[tool] list_receipts → returning", mapped.length, "rows");
     return mapped;
   } catch (e) {
     console.error("[tool] list_receipts ERROR:", e);
@@ -87,7 +86,6 @@ async function queryAggregatesImpl({ metric }: { metric: AggregateMetric }) {
           return g;
       }
     });
-    console.log("[tool] query_aggregates metric=" + metric + " →", projected);
     return projected;
   } catch (e) {
     console.error("[tool] query_aggregates ERROR:", e);
@@ -114,7 +112,6 @@ async function getReceiptDetailImpl({ id }: { id: string }) {
       },
     });
     if (!r) {
-      console.log("[tool] get_receipt_detail → not found id:", id);
       return { error: `No receipt with id ${id}.` };
     }
     const mapped = {
@@ -130,7 +127,6 @@ async function getReceiptDetailImpl({ id }: { id: string }) {
       total: r.total != null ? Number(r.total) : null,
       items: r.items,
     };
-    console.log("[tool] get_receipt_detail → returning id:", id);
     return mapped;
   } catch (e) {
     console.error("[tool] get_receipt_detail ERROR:", e);
