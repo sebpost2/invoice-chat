@@ -37,10 +37,14 @@ export function checkRateLimit(key: string): RateLimitResult {
 }
 
 export function clientIp(req: Request): string {
+  const realIp = req.headers.get("x-real-ip")
+  if (realIp) return realIp
+
   const xff = req.headers.get("x-forwarded-for")
   if (xff) {
-    const first = xff.split(",")[0]?.trim()
-    if (first) return first
+    // Rightmost entry is appended by the closest (trusted) proxy; leftmost is client-supplied and spoofable.
+    const parts = xff.split(",").map((p) => p.trim()).filter(Boolean)
+    if (parts.length > 0) return parts[parts.length - 1]
   }
-  return req.headers.get("x-real-ip") ?? "unknown"
+  return "unknown"
 }

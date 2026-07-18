@@ -4,20 +4,35 @@ import { prisma, DEMO_SESSION_ID } from "@/lib/prisma";
 
 export { SYSTEM_PROMPT_EN, SYSTEM_PROMPT_ES } from "@/lib/chat-prompts";
 
+function withToolLogging<Args extends unknown[], Result>(
+  name: string,
+  fn: (...args: Args) => Promise<Result>,
+) {
+  return async (...args: Args): Promise<Result> => {
+    try {
+      return await fn(...args);
+    } catch (e) {
+      console.error(`[tool] ${name} ERROR:`, e);
+      throw e;
+    }
+  };
+}
+
 type ListOrderBy = "date_desc" | "date_asc" | "total_desc" | "total_asc";
 
-async function listReceiptsImpl({ orderBy }: { orderBy: ListOrderBy }) {
-  const orderMap: Record<
-    ListOrderBy,
-    { field: "issueDate" | "total"; dir: "asc" | "desc" }
-  > = {
-    date_desc: { field: "issueDate", dir: "desc" },
-    date_asc: { field: "issueDate", dir: "asc" },
-    total_desc: { field: "total", dir: "desc" },
-    total_asc: { field: "total", dir: "asc" },
-  };
-  const { field, dir } = orderMap[orderBy];
-  try {
+const listReceiptsImpl = withToolLogging(
+  "list_receipts",
+  async ({ orderBy }: { orderBy: ListOrderBy }) => {
+    const orderMap: Record<
+      ListOrderBy,
+      { field: "issueDate" | "total"; dir: "asc" | "desc" }
+    > = {
+      date_desc: { field: "issueDate", dir: "desc" },
+      date_asc: { field: "issueDate", dir: "asc" },
+      total_desc: { field: "total", dir: "desc" },
+      total_asc: { field: "total", dir: "asc" },
+    };
+    const { field, dir } = orderMap[orderBy];
     const rows = await prisma.receipt.findMany({
       where: { sessionId: DEMO_SESSION_ID },
       orderBy: { [field]: dir },
@@ -32,7 +47,7 @@ async function listReceiptsImpl({ orderBy }: { orderBy: ListOrderBy }) {
         total: true,
       },
     });
-    const mapped = rows.map((r) => ({
+    return rows.map((r) => ({
       id: r.id,
       vendorName: r.vendorName,
       vendorRuc: r.vendorRuc,
@@ -42,12 +57,8 @@ async function listReceiptsImpl({ orderBy }: { orderBy: ListOrderBy }) {
       currency: r.currency,
       total: r.total != null ? Number(r.total) : null,
     }));
-    return mapped;
-  } catch (e) {
-    console.error("[tool] list_receipts ERROR:", e);
-    throw e;
-  }
-}
+  },
+);
 
 type AggregateMetric =
   | "total_spent"
@@ -56,8 +67,9 @@ type AggregateMetric =
   | "count"
   | "all";
 
-async function queryAggregatesImpl({ metric }: { metric: AggregateMetric }) {
-  try {
+const queryAggregatesImpl = withToolLogging(
+  "query_aggregates",
+  async ({ metric }: { metric: AggregateMetric }) => {
     const grouped = await prisma.receipt.groupBy({
       by: ["currency"],
       where: { sessionId: DEMO_SESSION_ID },
@@ -71,7 +83,7 @@ async function queryAggregatesImpl({ metric }: { metric: AggregateMetric }) {
       totalIgv: g._sum.igv != null ? Number(g._sum.igv) : 0,
       totalSubtotal: g._sum.subtotal != null ? Number(g._sum.subtotal) : 0,
     }));
-    const projected = all.map((g) => {
+    return all.map((g) => {
       switch (metric) {
         case "total_spent":
           return { currency: g.currency, totalSpent: g.totalSpent };
@@ -86,15 +98,12 @@ async function queryAggregatesImpl({ metric }: { metric: AggregateMetric }) {
           return g;
       }
     });
-    return projected;
-  } catch (e) {
-    console.error("[tool] query_aggregates ERROR:", e);
-    throw e;
-  }
-}
+  },
+);
 
-async function getReceiptDetailImpl({ id }: { id: string }) {
-  try {
+const getReceiptDetailImpl = withToolLogging(
+  "get_receipt_detail",
+  async ({ id }: { id: string }) => {
     const r = await prisma.receipt.findFirst({
       where: { id, sessionId: DEMO_SESSION_ID },
       select: {
@@ -114,7 +123,7 @@ async function getReceiptDetailImpl({ id }: { id: string }) {
     if (!r) {
       return { error: `No receipt with id ${id}.` };
     }
-    const mapped = {
+    return {
       id: r.id,
       vendorName: r.vendorName,
       vendorRuc: r.vendorRuc,
@@ -127,12 +136,8 @@ async function getReceiptDetailImpl({ id }: { id: string }) {
       total: r.total != null ? Number(r.total) : null,
       items: r.items,
     };
-    return mapped;
-  } catch (e) {
-    console.error("[tool] get_receipt_detail ERROR:", e);
-    throw e;
-  }
-}
+  },
+);
 
 // Canonical source for prompts + tool schemas. When edited, also update
 // `evals/promptfoo.config.yaml` so the eval suite reflects the live config.

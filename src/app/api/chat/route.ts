@@ -43,6 +43,7 @@ export async function POST(req: Request) {
   let messages: UIMessage[];
   try {
     ({ messages } = await req.json());
+    if (!Array.isArray(messages)) throw new Error("messages is not an array");
   } catch {
     const errorMsg =
       lang === "es" ? "Cuerpo de solicitud inválido." : "Invalid request body.";
@@ -60,7 +61,6 @@ export async function POST(req: Request) {
   return result.toUIMessageStreamResponse({
     onError: (error) => {
       console.error("[/api/chat] streamText error:", error);
-      if (error instanceof Error) return error.message;
       return lang === "es"
         ? "Ocurrió un error procesando la consulta."
         : "Something went wrong processing the query.";
