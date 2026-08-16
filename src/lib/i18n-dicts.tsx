@@ -6,22 +6,21 @@ const enDict = {
   meta: {
     title: "Invoice Chat — Ask about your receipts",
     description:
-      "Conversational agent answering in natural language about Peruvian receipts, using SQL tools over Neon Postgres and Groq.",
+      "Ask about your receipts in plain English and get real answers — no dashboard, no filters to learn.",
   },
   header: {
-    subtitle: "Agent with tool use over 13 demo receipts",
+    subtitle: "Ask in plain English — 13 demo receipts loaded",
     extractorLink: "← Invoice Extractor",
   },
   intro: {
     title: "Ask me about your receipts",
     body: (
       <>
-        The agent decides which SQL tool to call (
-        <span className="font-mono">list_receipts</span>,{" "}
-        <span className="font-mono">query_aggregates</span>,{" "}
-        <span className="font-mono">get_receipt_detail</span>) and answers
-        with real data. Click each <span className="font-mono">tool</span>{" "}
-        chip to see the exact input and output.
+        No dashboard, no filters to learn — just ask like you'd ask a
+        person, and get an answer backed by your real numbers. Curious how
+        it works? Click any{" "}
+        <span className="font-mono">tool</span> tag under an answer to see
+        the exact database query it ran.
       </>
     ),
     suggestions: [
@@ -58,23 +57,21 @@ const esDict: Dict = {
   meta: {
     title: "Invoice Chat — Pregunta sobre tus boletas",
     description:
-      "Agente conversacional que responde en lenguaje natural sobre boletas peruanas, usando herramientas SQL sobre Neon Postgres y Groq.",
+      "Pregunta sobre tus boletas en lenguaje natural y recibe respuestas reales — sin dashboard, sin filtros que aprender.",
   },
   header: {
-    subtitle: "Agente con tool use sobre 13 boletas demo",
+    subtitle: "Pregunta en lenguaje natural — 13 boletas demo cargadas",
     extractorLink: "← Invoice Extractor",
   },
   intro: {
     title: "Pregúntame sobre tus boletas",
     body: (
       <>
-        El agente decide qué herramienta SQL llamar (
-        <span className="font-mono">list_receipts</span>,{" "}
-        <span className="font-mono">query_aggregates</span>,{" "}
-        <span className="font-mono">get_receipt_detail</span>) y responde
-        con la data real. Haz click en cada{" "}
-        <span className="font-mono">tool</span> para ver el input y output
-        exactos.
+        Sin dashboard, sin filtros que aprender — pregunta como le
+        preguntarías a una persona, y recibe una respuesta con tus datos
+        reales. ¿Curioso de cómo funciona? Haz click en cualquier etiqueta{" "}
+        <span className="font-mono">tool</span> bajo una respuesta para ver
+        la consulta exacta que corrió.
       </>
     ),
     suggestions: [
