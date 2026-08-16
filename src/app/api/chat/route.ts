@@ -23,7 +23,7 @@ export async function POST(req: Request) {
   const c = await cookies();
   const langCookie = c.get(LANG_COOKIE)?.value;
   const lang: "en" | "es" =
-    langCookie === "es" || langCookie === "en" ? langCookie : "en";
+    langCookie === "es" || langCookie === "en" ? langCookie : "es";
 
   if (!rl.allowed) {
     const minutes = Math.max(1, Math.ceil(rl.retryAfterSec / 60));
