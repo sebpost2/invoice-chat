@@ -1,6 +1,7 @@
 import { tool } from "ai";
 import { z } from "zod";
 import { prisma, DEMO_SESSION_ID } from "@/lib/prisma";
+import { categorize } from "@/lib/vendor-categories";
 
 export { SYSTEM_PROMPT_EN, SYSTEM_PROMPT_ES } from "@/lib/chat-prompts";
 
@@ -139,6 +140,32 @@ const getReceiptDetailImpl = withToolLogging(
   },
 );
 
+const spendingByCategoryImpl = withToolLogging(
+  "spending_by_category",
+  async () => {
+    const rows = await prisma.receipt.findMany({
+      where: { sessionId: DEMO_SESSION_ID },
+      select: { vendorName: true, total: true, currency: true },
+    });
+    const totals = new Map<string, { totalSpent: number; count: number }>();
+    for (const r of rows) {
+      if (r.total == null) continue;
+      const category = categorize(r.vendorName);
+      const key = `${category}|${r.currency}`;
+      const entry = totals.get(key) ?? { totalSpent: 0, count: 0 };
+      entry.totalSpent += Number(r.total);
+      entry.count += 1;
+      totals.set(key, entry);
+    }
+    return [...totals.entries()]
+      .map(([key, { totalSpent, count }]) => {
+        const [category, currency] = key.split("|");
+        return { category, currency, totalSpent, count };
+      })
+      .sort((a, b) => b.totalSpent - a.totalSpent);
+  },
+);
+
 // Canonical source for prompts + tool schemas. When edited, also update
 // `evals/promptfoo.config.yaml` so the eval suite reflects the live config.
 export const chatTools = {
@@ -175,6 +202,13 @@ export const chatTools = {
       id: z.string().describe("The id (cuid) of the receipt to fetch."),
     }),
     execute: getReceiptDetailImpl,
+  }),
+
+  spending_by_category: tool({
+    description:
+      "Returns total spending grouped by category (groceries, dining, home, health, shopping, other) and currency, sorted highest first. Use this whenever the user asks how to reduce, optimize, or improve their spending — ground the answer in this data instead of generic advice.",
+    inputSchema: z.object({}),
+    execute: spendingByCategoryImpl,
   }),
 };
 
