@@ -116,3 +116,19 @@
       value: "TOOL:list_receipts"
     - type: contains-json
       value: { orderBy: "total_asc" }
+
+- description: "EN: 'how can I cut costs?' → spending_by_category"
+  vars:
+    message: "How can I cut my monthly costs?"
+    lang: en
+  assert:
+    - type: contains
+      value: "TOOL:spending_by_category"
+
+- description: "ES: '¿cómo puedo ahorrar?' → spending_by_category"
+  vars:
+    message: "¿Cómo puedo reducir mis gastos mensuales?"
+    lang: es
+  assert:
+    - type: contains
+      value: "TOOL:spending_by_category"
