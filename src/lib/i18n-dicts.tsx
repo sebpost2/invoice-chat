@@ -28,6 +28,7 @@ const enDict = {
       "Who's my most frequent vendor?",
       "Give me the details of the most expensive receipt",
       "How much VAT did I pay?",
+      "Where can I cut costs?",
     ],
   },
   tool: {
@@ -79,6 +80,7 @@ const esDict: Dict = {
       "¿Quién es mi proveedor más frecuente?",
       "Dame el detalle de la boleta más cara",
       "¿Cuánto IGV pagué?",
+      "¿Dónde puedo recortar gastos?",
     ],
   },
   tool: {
