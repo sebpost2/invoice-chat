@@ -16,7 +16,7 @@ const enDict = {
     title: "Ask me about your receipts",
     body: (
       <>
-        No dashboard, no filters to learn — just ask like you'd ask a
+        No dashboard, no filters to learn — just ask like you&apos;d ask a
         person, and get an answer backed by your real numbers. Curious how
         it works? Click any{" "}
         <span className="font-mono">tool</span> tag under an answer to see
