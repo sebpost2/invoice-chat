@@ -67,6 +67,39 @@ function shortId(id: string): string {
   return id.slice(-6);
 }
 
+function SourceThumb({ id }: { id: string }) {
+  const [broken, setBroken] = useState(false);
+
+  if (broken) {
+    return (
+      <span
+        title={id}
+        className="font-mono px-1.5 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400 text-[11px]"
+      >
+        {shortId(id)}
+      </span>
+    );
+  }
+
+  return (
+    <a
+      href={`/api/receipt-image/${id}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      title={id}
+      className="block h-7 w-7 rounded overflow-hidden border border-zinc-800 hover:border-zinc-600 transition-colors"
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element -- receipt bytes come from our own DB-backed route, not next/image's remote loader */}
+      <img
+        src={`/api/receipt-image/${id}`}
+        alt=""
+        onError={() => setBroken(true)}
+        className="h-full w-full object-cover"
+      />
+    </a>
+  );
+}
+
 function MarkdownBody({ text }: { text: string }) {
   return (
     <div className="text-sm leading-relaxed [&_p]:my-1.5 [&_ul]:my-1.5 [&_ul]:pl-5 [&_ul]:list-disc [&_ol]:my-1.5 [&_ol]:pl-5 [&_ol]:list-decimal [&_li]:my-0.5 [&_strong]:font-semibold [&_code]:font-mono [&_code]:text-[0.85em] [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded [&_code]:bg-zinc-800/60 [&_table]:my-2 [&_table]:text-xs [&_th]:font-semibold [&_th]:px-2 [&_th]:py-1 [&_th]:border-b [&_th]:border-zinc-700 [&_td]:px-2 [&_td]:py-1 [&_td]:border-b [&_td]:border-zinc-800">
@@ -256,13 +289,7 @@ export default function Page() {
                   <div className="pt-2 flex flex-wrap items-center gap-1.5 text-[11px] text-zinc-500">
                     <span className="text-zinc-600">{t.sources.sourcesLabel}</span>
                     {sources.ids.map((id) => (
-                      <span
-                        key={id}
-                        title={id}
-                        className="font-mono px-1.5 py-0.5 rounded bg-zinc-900 border border-zinc-800 text-zinc-400"
-                      >
-                        {shortId(id)}
-                      </span>
+                      <SourceThumb key={id} id={id} />
                     ))}
                   </div>
                 )}
