@@ -9,7 +9,7 @@ const enDict = {
       "Ask about your receipts in plain English and get real answers — no dashboard, no filters to learn.",
   },
   header: {
-    subtitle: "Ask in plain English — 13 demo receipts loaded",
+    subtitle: "Ask in plain English — 27 demo receipts loaded",
     extractorLink: "← Invoice Extractor",
   },
   intro: {
@@ -61,7 +61,7 @@ const esDict: Dict = {
       "Pregunta sobre tus boletas en lenguaje natural y recibe respuestas reales — sin dashboard, sin filtros que aprender.",
   },
   header: {
-    subtitle: "Pregunta en lenguaje natural — 13 boletas demo cargadas",
+    subtitle: "Pregunta en lenguaje natural — 27 boletas demo cargadas",
     extractorLink: "← Invoice Extractor",
   },
   intro: {

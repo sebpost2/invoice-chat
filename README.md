@@ -10,7 +10,7 @@ Conversational agent that answers in natural language about Peruvian receipts an
 
 Author: [sebpost2](https://github.com/sebpost2)
 
-**[Live demo](https://invoice-chat-zeta.vercel.app)** · No sign-up · 13 demo receipts preloaded
+**[Live demo](https://invoice-chat-zeta.vercel.app)** · No sign-up · 27 demo receipts preloaded
 
 ---
 
@@ -23,7 +23,7 @@ Author: [sebpost2](https://github.com/sebpost2)
 - **Data-driven citations**: if the answer comes from a specific `get_receipt_detail`, the receipt id is shown. If it comes from a list/aggregate, the scope is shown ("Based on N receipts"). No fabricated references.
 - **Real Markdown** in answers (bullets, tables, emphasis) rendered with `react-markdown` + GFM.
 - **Per-IP rate limit** (in-memory token bucket, 10 messages/hour) — protects the free Groq quota from casual bots and shows a friendly message on limit hit.
-- **Synthetic demo data**: 10 receipts seeded via `npm run seed` (Tottus, Pardos, Sodimac, Inkafarma, etc.) plus the 3 real ones from the extractor — 13 receipts total for substantial questions.
+- **Synthetic demo data**: 24 receipts seeded via `npm run seed` (Tottus, Pardos, Sodimac, Inkafarma, etc.) plus the 3 real ones from the extractor — 27 receipts total for substantial questions.
 - **Tool-selection evals with [Promptfoo](https://promptfoo.dev)**: 22 cases under [`evals/`](./evals) lock down the agent's behavior — single-step routing (ES + EN), multi-step `list → detail` chains, and no-tool refusal for greetings/off-topic. Run with `npm run eval`. A pre-eval guard verifies the duplicated prompt copy hasn't drifted from `src/lib/chat-prompts.ts`.
 
 ## Stack

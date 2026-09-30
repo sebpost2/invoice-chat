@@ -10,7 +10,7 @@ Agente conversacional que responde en lenguaje natural sobre boletas y facturas 
 
 Autor: [sebpost2](https://github.com/sebpost2)
 
-**[Demo en vivo](https://invoice-chat-zeta.vercel.app)** · Sin registro · 13 boletas demo precargadas
+**[Demo en vivo](https://invoice-chat-zeta.vercel.app)** · Sin registro · 27 boletas demo precargadas
 
 ---
 
@@ -23,7 +23,7 @@ Autor: [sebpost2](https://github.com/sebpost2)
 - **Citas data-driven**: si la respuesta surge de un `get_receipt_detail` específico, se muestra el id de la boleta consultada. Si surge de un listado/agregado, se muestra el alcance ("Basado en N boletas"). Nada de fabricar referencias.
 - **Markdown real** en las respuestas (bullets, tablas, énfasis) renderizado con `react-markdown` + GFM.
 - **Rate limit** por IP (token bucket en memoria, 10 mensajes/hora) — protege la cuota gratis de Groq de bots casuales y muestra un mensaje amigable al alcanzar el límite.
-- **Demo data sintética**: 10 boletas sembradas vía `npm run seed` (Tottus, Pardos, Sodimac, Inkafarma, etc.) más las 3 reales del extractor — 13 boletas totales para preguntas con sustancia.
+- **Demo data sintética**: 24 boletas sembradas vía `npm run seed` (Tottus, Pardos, Sodimac, Inkafarma, etc.) más las 3 reales del extractor — 27 boletas totales para preguntas con sustancia.
 - **Evals de tool selection con [Promptfoo](https://promptfoo.dev)**: 22 casos bajo [`evals/`](./evals) que blindan el comportamiento del agente — ruteo single-step (ES + EN), chains `list → detail`, y rechazo sin tool para saludos / off-topic. Corre con `npm run eval`. Un guard pre-eval verifica que la copia duplicada del prompt no haya divergido de `src/lib/chat-prompts.ts`.
 
 ## Stack
